@@ -1,0 +1,188 @@
+STÖK and Tom does terminal
+"VIM tutorial: linux terminal tools for bug bounty pentest and redteams with @tomnomnom"
+___
+
+Notes from STÖKs VIM tutorial/terminal tools with @tomnomnom, if you found this before the video for whatever reason it's here: https://www.youtube.com/watch?v=l8iXMgk2nnY
+
+This is written for lazy people like me who would like to go back and find that thing in that video I know I saw but don't have time to look thru again. Grep sadly doesn't work on videos nor voice yet. The below text might look like an instruction but says little if you did not watch the video so please do that. It might also be filled by typos or bad grammar, it's notes, correct me or get over it ;)
+Other then that, enjoy (and once again, thanks to STÖK and Tom, Jesus you're good...)
+
+#Create new folder for the project
+mkdir <domain>
+
+#Find all subdomains, Tom built a tool for this, find Assetfinder on Github: https://github.com/tomnomnom
+
+#Pipe the output into a file:
+assetfinder --subdomains-only domain.com > domains.txt
+
+#Check if the subdomains have web-pages on them (port 80and 443), again tool Tom built, whatweb would also work
+cat domains | httpproble
+
+#To split the output into both on screen text and pipe into file use the tee command, that splits the output
+
+#It's important you call this file "hosts" for the next step
+cat domains | httpproble | tee hosts
+ 
+#tee -A to append a file, this could be useful when you want to see your program is still running and hasn't hung
+ 
+#Another program Tom built is meg, it fetches loads of web-pages one at a time, you may set how often it fetches each site
+#Look for root of all the websites listed in hosts
+meg -d 1000 -v /
+ 
+#There's a BURP tool called Turbo Intruder which is faster if you're looking at lots of stuff on one host.
+ 
+#When meg is done you'll get a folder called output, in that is one folder per host looked at. 
+#In each folder there are two files, one for http and one for https
+
+#You can then grep from those files for subdomains and open the output in vim:
+grep -Hnri <inser subdomain> * | vim -
+// H display the filename
+// n display the line number
+// r recursive (goes into all directory's) 
+// i case insensitive
+
+#grep -vi, -v for invert and -i for case-insensitivity
+
+#In vim / is search, then N for next. Note-to-self, time to learn vim
+#In vim :%! %is current file and ! means run this in a shell, this pipes it into a process and then back. So for instance ":%!grep -v http" will get rid off all lines containing http
+
+#Another tool by Tom is gf, takes files in ~/.gf/ (/home/USERNAME/.gf/) as argument, searches for anything matching the pattern described in the gf-file in the directory you're currently in. 
+
+#gf arguments should be regexp. for grep on this format:
+{
+"flags": "-HnroE"
+"pattern": "<insert pattern>"
+}
+
+
+#Running gf is the same thing as running grep with the flags and pattern separately, only some patterns are really hard to remember, regexp and so on.
+
+{" will become eyJ in base64, bonus-tip!
+
+gf base64 | vim -
+:%!awk -F':' '{print $3}' or :%!cut -D ': '-F3
+#This to separate into columns at : and then print field 3
+#awk handles things a bit better though
+
+#CTRL+V puts you into visual block mode (alt. mouse mark in notepad++), if you hit x everything marked will get deleted.
+#shift +A for append (end of row) then backspace, then esc, if you then hit down and . it will repeate whatever you did on the line below
+#%s/<insert search term>/ if you don't put anything in it will search for whatever you searched for last time
+#%s/<insert search term>/<insert replace term, empty for remove>/
+
+#Remove duplicates
+:%!sort -U
+
+#Temporarily exit vim (close window) How do you get back?
+:sh
+
+#To de-crypt base64, run:
+echo <string> | base64 -d
+
+#Run a command for every line of a file
+:%!xargs -n1 -I{} sh -c 'echo {} | base64 -d'
+//n1 one at a time
+//I{} place argument in here
+
+#Find all files
+find . -type f
+
+#html-tool parses stuff out from files. It can also give you the content of tags. Of course also a Tom program
+find . -type f | html-tool attribs src
+
+#To grep for files ending in .js pipe output to
+grep '\.js$'
+
+#Output content of tags
+find . -type f | html-tool tags title | vim -
+
+#Do grep for whateves under the cursor and open up results in new tab
+:tabnew | read !grep -HNS 'self'
+
+#Take you back to the line 
+ctrl+w then g then shift+f
+
+#Turn json into javascript with gron (also Tom-tool, in default repo from ubuntu 19.04)
+cat <json-file.json> | gron
+
+#Turn javascript into json
+gron -u
+
+#Take everything that has ever been in a git repo and output it as one text-string
+{ find .git/objects/pack/ -name "*.idx"|while read i;do git show-index < "$i"|awk '{print $2}';done;find .git/objects/ -type f|grep -v '/pack/'|awk -F'/' '{print $(NF-1)$NF}'; }|while read o;do git cat-file -p $o;done|grep -E 'pattern'
+
+#To close brackets so that an md-reader does not go shit-bat crazy>
+#From there you can do a | grep -ai '<pattern to match>'
+
+#List every version of every file ever put on git.
+#With this you can list code that might have been removed (keys might be published by mistake and then 'removed')
+ls .git/objects
+
+#You can of course delete stuff forever and wipe away all history of it, but it's harder then one could think: https://chrisshort.net/permanently-remove-any-record-of-a-file-from-git/
+
+#To get back in time in git-repository three commits (^ is one commit)
+git checkout master^^^
+
+#To get back to present commit
+git checkout -
+
+ghdump.sh
+	1.!#/bin/bash
+	2.
+	3.{ 
+	4.	find .git/objects/pack/ -name "*.idx" | 
+	5.	while read i; do 
+	6.		git show-index < "$i" | 
+	7.		awk '{print $2}';
+	8.	done;
+	9.	find .git/objects/ -type f | 
+	10.	grep -v '/pack/' | 
+	11.	awk -F'/' '{print $(NF-1)$NF}'; 
+	12.	} |
+	13.	   while read o; do 
+	14.	         git cat-file -p $o;
+	15.	         done
+
+#To close brackets so that an md-reader does not go shit-bat crazy>
+#Lets look at each line
+1. A shabang, tells kernel that this is a shell file that needs to be handled by bash
+2.
+3.
+4. find files in the repository archive that ends in .idx. Github will pack all object-files together for compression, this is called a pack-file. To know where one object ends and begins github uses .idx-files to save the of sets in the pack-files.
+5.  Puts each index-file into a variable called i
+6. Take the file on the left, and attach it to the input of this command
+7. The git show-index outputs three columns of data, we want the second. This command does this. 
+8. In total this part of the function gives us all object hashes that have been packed.
+9. Now we want to find all objects that has not been listed already (all unpacked). First we list all files. The -type f means we don't list directory's, only files.
+10. Then we remove all we've already listed
+11. -F in awk is a field separator, here we separate by / and then print the second to last field and the last field (number of fields minus one)(number of fields)
+12. This is the end of the total function, which means we put them together and can pipe them into something else
+13. We put the output into a variable called O. O now contains all information we need to do stuff with it, stored in memory.
+14. We now cat (print) all the files
+15. program done
+
+#We can now run ./ghdump.sh | grep '<pattern to match>'
+
+#This will, however, bring is some problems, "Binary file (standard input) matches". This means we've feed it some binary file, there might have been an image or something in the git-repository. grep -a stops this from happening since this instructs grep to treat binary files as text-files.
+
+ #Let's find the urls
+ gf urls | grep -i <pattern to match> | vim -
+ :%!sort -u
+ 
+ #Now let's use another Tom-tool to sort out unique paths
+ :%!unfurl -u paths
+ 
+ #We might also wanna parse for query strings (https://en.wikipedia.org/wiki/Query_string)
+ :%!unfurl -u keys
+ #This is really helpful if your running param miner extension for BURP (https://github.com/PortSwigger/param-miner). This would create a great word-list
+ 
+ #To check waybackmachine for URLs use:
+ echo example.com | waybackurls | head
+
+More about Tom here: 
+https://tomnomnom.com/ 
+https://twitter.com/tomnomnom 
+https://github.com/tomnomnom
+
+More about STÖK here:
+https://www.youtube.com/channel/UCQN2DsjnYH60SFBIA6IkNwg
+https://twitter.com/stokfredrik
