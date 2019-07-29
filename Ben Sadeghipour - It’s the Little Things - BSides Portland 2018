@@ -1,0 +1,64 @@
+Talk: https://www.youtube.com/watch?v=YT5Zl2jW3wg&list=WL&index=8&t=0s
+Subject: Recon
+Github: https://github.com/nahamsec
+Twitter: https://twitter.com/nahamsec
+
+Agenda:
+1. Overview
+2. Asset Discovery
+3. Content Discovery
+4. Automation
+5. Digital Dumpster Diving
+6. Real Life Examples
+
+
+1. Overview
+  Why?
+	Self improvement
+	Networking
+	My career was built/boosed thanks to it
+	Competition makes it more fun
+	Extra cash
+Recon
+	Spend more time on doing recon then anything else, you'll learn alot
+	We all leak out paswords on Github some time
+	6.20 in is a great flow chart
+	Shodan
+	Certspotter (nice API, free)
+	cert.sh (great API and webinterface, wildcard)
+	OSINT (Open Source Intellegence) 
+
+2. Asset Discovery
+	In short,
+		Find websites
+		Port scan
+		Look for interesting files and directories
+		
+3. Content Discovery
+	webscreenshoot.py goes to a webpage and takes a screenshot if it responds, set a max respons time!
+	Robots.txt often has good information
+		
+	Good directory search programs	
+		dirbuster
+		gograber
+		gobuster
+		dirsearch (best one)
+	Always archive your reports
+
+4. Automation
+	lazys3.py (written by Ben and a Co-worker)
+	bucketeer.sh
+	Pro tip, build certspotter, dirsearch and webscreenshot together, win!
+	
+5.  Digital Duspster Diving
+	Looking for credentials, API tokens and authorization headers
+	Search for variable name, list of examples 25:40
+	Get your hands on old data, waybackmachine.org, sometimes people forgett to clean old shit up
+	JS parser, tool for cleaning up Javascript
+	Look at Trello
+  
+6.   Real Life Examples
+	Snapchat, not secured their Jenkins
+	AirBNB, don't let users users submit just any get querry
+	Dumster diving, finding FTP-credentials on github, also, tokens are fun and dangerous
+	
